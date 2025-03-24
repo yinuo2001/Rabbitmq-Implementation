@@ -1,14 +1,11 @@
 package org.yinuo.rabbitmq101;
 
+import com.codahale.metrics.MetricAttribute;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.Channel;
 
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
@@ -39,12 +36,6 @@ public class ClientPost implements Runnable {
     this.client = client;
     this.data = data;
     this.file = file;
-
-    ConnectionFactory factory = new ConnectionFactory();
-    factory.setHost("localhost");
-    try (Connection connection = factory.newConnection();
-         Channel channel = connection.createChannel()) {
-    }
   }
 
   // stolen from https://hc.apache.org/httpclient-legacy/tutorial.html
@@ -74,7 +65,6 @@ public class ClientPost implements Runnable {
 
     // Create a post method instance.
     HttpPost postMethod = new HttpPost(postUrl);
-
 
     // Provide custom retry handler is necessary
     /*postMethod.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
@@ -116,8 +106,21 @@ public class ClientPost implements Runnable {
   }
 
   // Post reviews that indicate a like/dislike for the album
-  public void postReview() {
-
+  public void postReview(int albumId, String like) {
+    HttpPost postMethod = new HttpPost(postUrl + "/" + like + "/" + albumId);
+    try {
+      CloseableHttpResponse response = client.execute(postMethod);
+      int statusCode = response.getCode();
+      if (statusCode >= 200 && statusCode < 300) {
+        successCount.incrementAndGet();
+      } else {
+        failCount.incrementAndGet();
+      }
+      EntityUtils.consume(response.getEntity());
+    } catch (IOException e) {
+      System.err.println("Fatal transport error: " + e.getMessage());
+      e.printStackTrace();
+    }
   }
 
   public static int getSuccessCount() {
