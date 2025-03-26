@@ -32,6 +32,11 @@ The success rate is actually 79.29% after observing number of rows inserted into
 
 ![Result screenshot](metrics.png)
 
+Here's the inserted row number comparison when it stops publishing to the queue and when the rabbitmq finishes forwarding all messages to the queue.
+
+![db screenshot](mysql1.png)
+
+![db screenshot](mysql2.png)
 
 
 ## Possible Bottleneck
@@ -39,4 +44,3 @@ The success rate is actually 79.29% after observing number of rows inserted into
 1. The server establishes a new RabbitMQ connection every time it posts a review, which is very likely to cause overhead.
 2. The request success rate remains 100%, suggesting that the system is not fully stressed and a potential bottleneck is not reached.
 3. The throughput can be exaggerated for that message queue, as it's asynchronous, continues sending new queries to the database after the client side stops.
-4. 
