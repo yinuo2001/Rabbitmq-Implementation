@@ -22,17 +22,16 @@ import org.apache.spark.sql.RowFactory;
 public class ClientPost implements Runnable {
   private static AtomicInteger successCount = new AtomicInteger(0);
   private static AtomicInteger failCount = new AtomicInteger(0);
-  private String postUrl;
+  private String postAlbumUrl;
+  private String postReviewUrl;
   private CloseableHttpClient client;
   private List<Row> data;
   private File file;
 
-  private final String QUEUE_NAME = "hello";
-
-
   public ClientPost(String IPAddr, CloseableHttpClient client, List<Row> data, File file)
       throws IOException, TimeoutException {
-    this.postUrl = "http://" + IPAddr + "/album";
+    this.postAlbumUrl = "http://" + IPAddr + "/IGORTON/AlbumStore/1.0.0/albums";
+    this.postReviewUrl = "http://" + IPAddr + "/review";
     this.client = client;
     this.data = data;
     this.file = file;
@@ -40,8 +39,8 @@ public class ClientPost implements Runnable {
 
   // stolen from https://hc.apache.org/httpclient-legacy/tutorial.html
   public void run() {
-    long starttime = System.currentTimeMillis();
-    System.out.println("POST START: " + starttime + Thread.currentThread().getName());
+    //long starttime = System.currentTimeMillis();
+    //System.out.println("POST START: " + starttime + Thread.currentThread().getName());
     MultipartEntityBuilder builder = MultipartEntityBuilder.create();
     builder.setMode(HttpMultipartMode.STRICT);
 
@@ -64,7 +63,7 @@ public class ClientPost implements Runnable {
     HttpEntity entity = builder.build();
 
     // Create a post method instance.
-    HttpPost postMethod = new HttpPost(postUrl);
+    HttpPost postMethod = new HttpPost(postAlbumUrl);
 
     // Provide custom retry handler is necessary
     /*postMethod.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
@@ -97,8 +96,8 @@ public class ClientPost implements Runnable {
 
       // Consume response content
       EntityUtils.consume(response.getEntity());
-      long endtime = System.currentTimeMillis();
-      System.out.println("POST END: " + endtime + Thread.currentThread().getName());
+      //long endtime = System.currentTimeMillis();
+      //System.out.println("POST END: " + endtime + Thread.currentThread().getName());
     } catch (IOException e) {
       System.err.println("Fatal transport error: " + e.getMessage());
       e.printStackTrace();
@@ -107,12 +106,17 @@ public class ClientPost implements Runnable {
 
   // Post reviews that indicate a like/dislike for the album
   public void postReview(int albumId, String like) {
-    HttpPost postMethod = new HttpPost(postUrl + "/" + like + "/" + albumId);
+    HttpPost postMethod = new HttpPost(postReviewUrl + "/" + like + "/" + albumId);
+    long startTime = System.currentTimeMillis();
     try {
       CloseableHttpResponse response = client.execute(postMethod);
       int statusCode = response.getCode();
       if (statusCode >= 200 && statusCode < 300) {
+        //System.err.println("Post Method success: " + statusCode);
         successCount.incrementAndGet();
+        long endTime = System.currentTimeMillis();
+        long latency = endTime - startTime;
+        data.add(RowFactory.create(startTime, "POST", latency, statusCode));
       } else {
         failCount.incrementAndGet();
       }

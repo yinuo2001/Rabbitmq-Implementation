@@ -19,11 +19,11 @@ import org.apache.spark.sql.types.StructType;
 // Delete data.csv folder each time before running the program
 public class Main {
   private static final int GROUP_SIZE = 10;
-  private static final int NUMBER_OF_GROUPS = 10;
+  private static final int NUMBER_OF_GROUPS = 30;
   private static final int DELAY = 2;
   // IP address of the java servlet server
   private static final String IPAddr = "localhost:8080/server_war";
-  private static final String FILE_PATH = "src/main/resources/Example.jpg";
+  private static final String FILE_PATH = "/Users/elise/Desktop/RabbitmqImplementation/client/src/main/resources/Example.jpg";
 
   public static void main(String[] args) {
     PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
@@ -52,9 +52,9 @@ public class Main {
       for (int j = 0; j < NUMBER_OF_GROUPS; j++) {
         for (int i = 0; i < GROUP_SIZE; i++) {
           Runnable thread = () -> {
-            for (int k = 0; k < 1; k++) {
+            for (int k = 0; k < 100; k++) {
               //clientGet.run();
-              clientPost.run();
+              clientPost.postReview(1, "like");
             }
             completed2.countDown();
             //System.out.println("Thread completed");
@@ -93,7 +93,7 @@ public class Main {
       spark.stop();
       System.out.println("Time taken: " + (end - start) / 1000 + "s");
       System.out.println(
-          "Throughput: " + ((totalThreads * 2000)) * 2 / ((end - start) / 1000) +
+          "Throughput: " + ((totalThreads * 100)) / ((end - start) / 1000) +
               " requests/s");
 
       int postSuccesses = ClientPost.getSuccessCount();
