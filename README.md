@@ -20,7 +20,7 @@ Message flow as in posting reviews:
 
 ## Results
 
-
+![RabbitMQ interface screenshot](mq.png)
 
 ![Result screenshot](Result.png)
 
