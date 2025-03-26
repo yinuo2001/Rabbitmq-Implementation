@@ -26,4 +26,5 @@ Message flow as in posting reviews:
 
 ## Possible Bottleneck
 
-The server establishes a new RabbitMQ connection every time it posts a review. 
+1. The server establishes a new RabbitMQ connection every time it posts a review, which is very likely to cause overhead.
+2. The request success rate remains 100%, suggesting that the system is not fully stressed and a potential bottleneck is not reached.
